@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express';
+import Anthropic from '@anthropic-ai/sdk';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { HumanMessage } from '@langchain/core/messages';
@@ -39,13 +40,26 @@ router.post('/chat', async (req: Request, res: Response) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tools = toolkit.getTools() as any[];
 
-    const llm = new ChatAnthropic({
-      model: process.env.LLM_MODEL ?? 'claude-sonnet-4-6',
+    // Build a pre-configured Anthropic client with a custom fetch that injects
+    // the user-agent required by the DashScope proxy endpoint.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const patchedFetch = async (url: any, init?: any) => {
+      const headers = new Headers(init?.headers);
+      headers.set('user-agent', 'claude-code/1.2.0');
+      return globalThis.fetch(url, { ...init, headers });
+    };
+
+    const anthropicClient = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
+      baseURL: process.env.ANTHROPIC_BASE_URL,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fetch: patchedFetch as any,
+    });
+
+    const llm = new ChatAnthropic({
+      model: process.env.LLM_MODEL ?? 'qwen3-coder-plus',
       temperature: 0,
-      clientOptions: process.env.ANTHROPIC_BASE_URL
-        ? { baseURL: process.env.ANTHROPIC_BASE_URL }
-        : undefined,
+      createClient: () => anthropicClient,
     });
 
     const agent = createReactAgent({

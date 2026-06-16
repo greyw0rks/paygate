@@ -1,5 +1,6 @@
 import {
   AbstractPolicy,
+  type PostCoreActionParams,
   type PostParamsNormalizationParams,
 } from '@hashgraph/hedera-agent-kit';
 import type { Role, RolePolicy } from '../roles.js';
@@ -101,6 +102,18 @@ export class SpendingLimitPolicy extends AbstractPolicy {
       }
     }
 
+    return false;
+  }
+
+  // Record spend after the core action succeeds so the daily cap stays accurate.
+  protected override shouldBlockPostCoreAction(
+    params: PostCoreActionParams,
+    _method: string
+  ): boolean | Promise<boolean> {
+    const normalised = params.normalisedParams as Record<string, unknown> | undefined;
+    const raw = params.rawParams as Record<string, unknown> | undefined;
+    const amount = extractHbarAmount(normalised ?? raw ?? {});
+    if (amount !== null) recordSpend(this.role, amount);
     return false;
   }
 }

@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ override: true }); // force .env values over any inherited session environment
 import express from 'express';
 import cors from 'cors';
 import chatRouter from './routes/chat.js';
