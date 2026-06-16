@@ -1,0 +1,22 @@
+{
+  "name": "paygate",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:agent": "npm run dev --workspace=packages/agent",
+    "dev:web": "npm run dev --workspace=packages/web",
+    "build": "npm run build --workspaces"
+  },
+  "dependencies": {
+    "protobufjs": "8.2.0",
+    "bn.js": "5.2.3",
+    "ansi-regex": "6.2.2",
+    "ansi-styles": "6.2.3",
+    "debug": "4.4.1",
+    "strip-ansi": "7.1.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  }
+}
